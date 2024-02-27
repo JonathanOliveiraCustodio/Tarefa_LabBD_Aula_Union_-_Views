@@ -1,106 +1,158 @@
-/*Uma empresa tem clientes, fornecedores e funcion·rios.
-Um problema da empresa È gerar uma ˙nica agenda com todos os contatos (fornecedores e clientes) (Camada de controle j· deve receber pronta)
-Outro problema È filtrar as informaÁıes de funcion·rios para que dados sensÌveis sejam visÌveis apenas nas camadas do software que devem aparecer:
-- Sal·rio apenas para RH
-- login e senha apenas para TI
-- Id e Nome s„o comuns a todas as camadas do sistema
-*/
- 
-CREATE DATABASE unionview2
-GO
-USE unionview2
-GO
-CREATE TABLE cliente(
-	id_cliente 		INT		NOT NULL,
-	nome_cliente 		VARCHAR(40) 	NOT NULL,
-	email_cliente 		VARCHAR(50) 	NOT NULL,
-	telefone_cliente 	CHAR(11) 	NOT NULL
-	PRIMARY KEY (id_cliente)
-)
-GO
-CREATE TABLE fornecedor(
-	id_fornecedor 		INT		NOT NULL,
-	nome_fornecedor 	VARCHAR(40) 	NOT NULL,
-	email_fornecedor 	VARCHAR(50) 	NOT NULL,
-	telefone_fornecedor 	CHAR(11) 	NOT NULL
-	PRIMARY KEY (id_fornecedor)
-)
-GO
-CREATE TABLE funcionario(
-	id_func 	INT		NOT NULL,
-	nome_func 	VARCHAR(100) 	NOT NULL,
-	salario_func 	DECIMAL(7, 2) 	NULL,
-	login_func 	CHAR(8) 	NULL,
-	senha_func 	CHAR(8) 	NULL
-	PRIMARY KEY (id_func)
-)
- 
-INSERT INTO cliente VALUES 
-(1001,	'Quote Voamo',	'quo@email.com',	'11987654321'),
-(1002,	'Arvane Woxao',	'arv@email.com',	'11912837465'),
-(1003,	'Sokay Puygu',	'sok@email.com',	'11932569874'),
-(1004,	'Leaga Gaur',	'lea@email.com',	'11912458632'),
-(1005,	'Laoxo Uses',	'lao@email.com',	'11902365400')
-GO
-INSERT INTO fornecedor VALUES
-(1001,	'Nitour',	'nitour@email.com',	'11977889966'),
-(1002,	'Buroze',	'buroze@email.com',	'11933669988'),
-(1003,	'Hiluy',	'hiluy@email.com',	'11911220044'),
-(1004,	'Orde',		'orde@email.com',	'11933654477'),
-(1005,	'Ciagoa',	'ciagoa@email.com',	'11933001177')
-GO
-SELECT * FROM cliente
-SELECT * FROM fornecedor
-SELECT * FROM funcionario
+CREATE DATABASE faculdade
 
-SELECT id_cliente AS id, nome_cliente AS nome, 
-	email_cliente AS email, telefone_cliente AS telefone,
-	'CLIENTE' AS tipo
-FROM cliente
-UNION ALL --UNION remove duplicidades | UNION ALL apresenta todas as linhas
-SELECT id_fornecedor AS id, nome_fornecedor AS nome, 
-	email_fornecedor AS email, telefone_fornecedor AS telefone,
-	'FORNECEDOR' AS tipo
-FROM fornecedor
-ORDER BY id
- 
-/* VIEW - VIS√O / EXIBI«√O
-DDL - CREATE (ALTER | DROP) VIEW v_nome
-*/
-CREATE VIEW v_agenda
-AS
-SELECT id_cliente AS id, nome_cliente AS nome, 
-	email_cliente AS email, telefone_cliente AS telefone,
-	'CLIENTE' AS tipo
-FROM cliente
-UNION --UNION remove duplicidades | UNION ALL apresenta todas as linhas
-SELECT id_fornecedor AS id, nome_fornecedor AS nome, 
-	email_fornecedor AS email, telefone_fornecedor AS telefone,
-	'FORNECEDOR' AS tipo
-FROM fornecedor
- 
-SELECT * FROM v_agenda
-ORDER BY id
- 
-CREATE VIEW v_ti
-AS
-SELECT id_func, nome_func, login_func, senha_func
-FROM funcionario
- 
-CREATE VIEW v_rh
-AS
-SELECT id_func, nome_func, salario_func
-FROM funcionario
- 
-SELECT * FROM v_ti
-SELECT * FROM v_rh
- 
-INSERT INTO v_ti VALUES
-(100001, 'Fulano', 'ful@emp', '123mudar')
- 
-INSERT INTO v_rh VALUES
-(100001, 'Fulano', 5000.00) --ViolaÁ„o de FK
- 
-UPDATE v_rh
-SET salario_func = 5000.00
-WHERE id_func = 100001
+USE faculdade
+
+CREATE TABLE curso (
+Codigo			INT,
+Nome			VARCHAR(70)			NOT NULL,
+Sigla			VARCHAR(10)			NOT NULL
+PRIMARY KEY (Codigo)
+)
+GO
+
+CREATE TABLE aluno(
+Ra				CHAR(7)				NOT NULL,
+Nome			VARCHAR(250)		NOT NULL,
+Codigo_Curso	INT					NOT NULL
+PRIMARY KEY (Ra)
+FOREIGN KEY (Codigo_Curso) REFERENCES Curso (Codigo)
+)
+GO
+
+CREATE TABLE palestrante(
+Codigo_Palestrante			INT				IDENTITY(1,1),
+Nome						VARCHAR(250)    NOT NULL,
+Empresa						VARCHAR(100)	NOT NULL
+PRIMARY KEY (Codigo_Palestrante)
+)
+GO
+
+CREATE TABLE palestra(
+Codigo_Palestra				INT				IDENTITY(1,1),
+Titulo						VARCHAR(MAX)	NOT NULL,
+Carga_Horaria				INT				NOT NULL,
+Data						DATE			NOT NULL,
+Codigo_Palestrante			INT				NOT NULL
+PRIMARY KEY (Codigo_Palestra)
+FOREIGN KEY (Codigo_Palestrante) REFERENCES palestrante (Codigo_Palestrante) 
+)
+GO
+
+CREATE TABLE alunos_inscritos(
+Ra					CHAR(7)			NOT NULL,
+Codigo_Palestra		INT				NOT NULL
+PRIMARY KEY (Ra, Codigo_Palestra)
+FOREIGN KEY (Ra) REFERENCES aluno (Ra),
+FOREIGN KEY	(Codigo_Palestra) REFERENCES palestra (Codigo_Palestra)
+)
+GO
+
+CREATE TABLE nao_alunos(
+RG			VARCHAR(9)			NOT NULL,
+Orgao_Exp	CHAR(5)				NOT NULL,
+Nome		VARCHAR(250)		NOT NULL
+PRIMARY KEY (RG,Orgao_Exp)
+)
+GO
+
+CREATE TABLE nao_alunos_inscritos(
+Codigo_Palestra				INT			NOT NULL,
+RG							VARCHAR(9)	NOT NULL,
+Orgao_Exp					CHAR(5)		NOT NULL
+PRIMARY KEY (Codigo_Palestra,RG,Orgao_Exp)
+FOREIGN KEY (Codigo_Palestra) REFERENCES palestra (Codigo_Palestra),
+FOREIGN KEY	(RG,Orgao_Exp) REFERENCES nao_alunos (RG,Orgao_Exp) 
+)
+GO
+
+
+INSERT INTO curso (Codigo, Nome, Sigla) VALUES
+(1, 'Engenharia da Computa√ß√£o', 'EC'),
+(2, 'Administra√ß√£o de Empresas', 'ADM'),
+(3, 'Direito', 'DIR'),
+(4, 'Medicina', 'MED'),
+(5, 'Psicologia', 'PSI');
+
+INSERT INTO aluno (Ra, Nome, Codigo_Curso) VALUES
+('1234567', 'Jo√£o Silva', 1),
+('2345678', 'Maria Santos', 2),
+('3456789', 'Pedro Oliveira', 3),
+('4567890', 'Ana Souza', 4),
+('5678901', 'Carlos Ferreira', 5);
+
+INSERT INTO palestrante (Nome, Empresa) VALUES
+('Lucas Mendes', 'Tech Solutions'),
+('Ana Costa', 'Data Insights Inc.'),
+('Marcos Santos', 'InnovateX'),
+('Carla Oliveira', 'FutureTech Co.'),
+('Rafaela Pereira', 'AI Dynamics');
+
+INSERT INTO palestra (Titulo, Carga_Horaria, Data, Codigo_Palestrante) VALUES
+('Introdu√ß√£o √† Intelig√™ncia Artificial', 2, '2024-03-10', 1),
+('Gest√£o de Projetos √Ågeis', 3, '2024-03-15', 2),
+('Inova√ß√£o e Tecnologia', 2, '2024-03-20', 3),
+('Desenvolvimento de Carreira', 1, '2024-03-25', 4),
+('Psicologia Organizacional', 2, '2024-03-30', 5);
+
+INSERT INTO alunos_inscritos (Ra, Codigo_Palestra) VALUES
+('1234567', 1),
+('2345678', 2),
+('3456789', 3),
+('4567890', 4),
+('5678901', 5);
+
+INSERT INTO nao_alunos (RG, Orgao_Exp, Nome) VALUES
+('123456789', 'SSP', 'Jos√© da Silva'),
+('234567890', 'SESP', 'Mariana Oliveira'),
+('345678901', 'SSP', 'Paulo Souza'),
+('456789012', 'SESP', 'Luana Santos'),
+('567890123', 'SSP', 'Mateus Ferreira');
+
+INSERT INTO nao_alunos_inscritos (Codigo_Palestra, RG, Orgao_Exp) VALUES
+(1, '123456789', 'SSP'),
+(2, '234567890', 'SESP'),
+(3, '345678901', 'SSP'),
+(4, '456789012', 'SESP'),
+(5, '567890123', 'SSP');
+
+DROP VIEW  Lista_Presenca 
+
+CREATE VIEW Lista_Presenca AS
+SELECT
+    a.Ra AS Num_Documento,
+    a.Nome AS Nome_Pessoa,
+    pa.Titulo AS Titulo_Palestra,
+    pal.Nome AS Nome_Palestrante,
+    pa.Carga_Horaria,
+    pa.Data,
+	'Aluno' AS Tipo_Aluno
+FROM
+    alunos_inscritos ai JOIN aluno a ON ai.Ra = a.Ra
+ JOIN palestra pa 
+  ON ai.Codigo_Palestra = pa.Codigo_Palestra
+JOIN palestrante pal 
+ ON pa.Codigo_Palestrante = pal.Codigo_Palestrante
+UNION ALL
+SELECT
+    CONCAT(na.RG, ' - ', na.Orgao_Exp) AS Num_Documento,
+    na.Nome AS Nome_Pessoa,
+    pa.Titulo AS Titulo_Palestra,
+    pal.Nome AS Nome_Palestrante,
+    pa.Carga_Horaria,
+    pa.Data,
+	'N√£o Aluno' AS Tipo_Aluno
+FROM
+    nao_alunos_inscritos nai JOIN nao_alunos na 
+	 ON nai.RG = na.RG AND nai.Orgao_Exp = na.Orgao_Exp
+ JOIN palestra pa 
+  ON nai.Codigo_Palestra = pa.Codigo_Palestra
+JOIN palestrante pal 
+ ON pa.Codigo_Palestrante = pal.Codigo_Palestrante
+
+SELECT * FROM Lista_Presenca
+ ORDER BY Nome_Pessoa;
+
+
+
+
+
